@@ -1,6 +1,6 @@
 # Kaizen (改善) - AI Mock Interview Platform
 
-![Kaizen Banner](https://via.placeholder.com/1200x300?text=Kaizen+AI+Interview+Platform)
+![Kaizen Banner](https://github.com/tabishfarhan7/tabishfarhan7/blob/main/assets/Gemini_Generated_Image_6ou0566ou0566ou0.png)
 
 > **"Continuous Improvement is better than delayed perfection."**
 
