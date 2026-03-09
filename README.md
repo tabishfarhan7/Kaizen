@@ -28,7 +28,7 @@
 * **Framework:** Express.js
 * **Database:** MongoDB (Mongoose) for user profiles and interview logs.
 
-**AI & APIs:**
+**AI & API:**
 * **LLM Engine:** OpenAI GPT-4 or Google Gemini API (for logic and feedback).
 * **Speech Services:** OpenAI Whisper (STT) + ElevenLabs or Web Speech API (TTS).
 
