@@ -10,7 +10,13 @@ interface HeroOdysseyProps {
 export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
   const [titleNumber, setTitleNumber] = useState(0)
   const titles = useMemo(
-    () => ['confidence', 'technical readiness', 'vocal clarity', 'instant feedback', 'performance analytics'],
+    () => [
+      { text: 'confidence', color: 'text-indigo-600' },
+      { text: 'technical readiness', color: 'text-emerald-600' },
+      { text: 'vocal clarity', color: 'text-violet-600' },
+      { text: 'instant feedback', color: 'text-amber-500' },
+      { text: 'performance analytics', color: 'text-rose-600' }
+    ],
     []
   )
 
@@ -60,7 +66,7 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
 
       {/* Main Hero Component */}
       <main className="relative max-w-4xl w-full text-center flex flex-col items-center pt-28 pb-16 z-10">
-        
+
         {/* Secondary Badge link */}
         <div className="mb-6">
           <Button variant="outline" size="sm" className="gap-2.5 rounded-full border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:border-zinc-300">
@@ -72,29 +78,29 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
         <div className="flex gap-4 flex-col mb-8">
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-zinc-950 leading-none">
             <span className="block mb-2">Master your next interview with</span>
-            
+
             {/* Height-constrained sliding container */}
             <span className="relative flex w-full justify-center overflow-hidden text-center h-[1.25em] py-1 select-none">
               &nbsp;
-              {titles.map((title, index) => (
+              {titles.map((titleObj, index) => (
                 <motion.span
                   key={index}
-                  className="absolute text-zinc-950 font-extrabold"
+                  className={`absolute font-extrabold ${titleObj.color}`}
                   initial={{ opacity: 0, y: '-100%' }}
                   transition={{ type: 'spring', stiffness: 60, damping: 15 }}
                   animate={
                     titleNumber === index
                       ? {
-                          y: 0,
-                          opacity: 1,
-                        }
+                        y: 0,
+                        opacity: 1,
+                      }
                       : {
-                          y: titleNumber > index ? '-150%' : '150%',
-                          opacity: 0,
-                        }
+                        y: titleNumber > index ? '-150%' : '150%',
+                        opacity: 0,
+                      }
                   }
                 >
-                  {title}.
+                  {titleObj.text}.
                 </motion.span>
               ))}
             </span>
@@ -102,25 +108,25 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
 
           {/* Description Pitch */}
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed font-light mt-4">
-            Real-time speech analysis, technical grading, and confidence tracking. 
+            Real-time speech analysis, technical grading, and confidence tracking.
             Experience a high-fidelity mock interview platform designed for modern engineers.
           </p>
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-          <Button 
-            onClick={onStart} 
-            size="lg" 
+          <Button
+            onClick={onStart}
+            size="lg"
             className="gap-2"
           >
             Start Mock Interview <ArrowRight className="w-4 h-4" />
           </Button>
-          
-          <Button 
+
+          <Button
             onClick={onStart}
-            size="lg" 
-            variant="secondary" 
+            size="lg"
+            variant="secondary"
             className="gap-2"
           >
             Explore Demo Engine
@@ -129,8 +135,8 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
 
         {/* Feature Highlights Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mt-24">
-          
-          <div className="glass-panel glass-panel-hover rounded-2xl p-5.5 text-left transition-all duration-300">
+
+          {/* <div className="glass-panel glass-panel-hover rounded-2xl p-5.5 text-left transition-all duration-300">
             <h3 className="text-sm font-bold text-zinc-900 mb-2 flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-zinc-950" />
               Live Speech Processing
@@ -138,9 +144,9 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
             <p className="text-zinc-500 text-xs leading-relaxed font-light">
               Continuous 250ms audio chunk slicing directly evaluates delivery pace and filler word occurrences.
             </p>
-          </div>
+          </div> */}
 
-          <div className="glass-panel glass-panel-hover rounded-2xl p-5.5 text-left transition-all duration-300">
+          {/* <div className="glass-panel glass-panel-hover rounded-2xl p-5.5 text-left transition-all duration-300">
             <h3 className="text-sm font-bold text-zinc-900 mb-2 flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-zinc-950" />
               Technical AI Grading
@@ -148,9 +154,9 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
             <p className="text-zinc-500 text-xs leading-relaxed font-light">
               Get an instant AI technical score, strengths report, and actionable improvement feedback upon completion.
             </p>
-          </div>
+          </div> */}
 
-          <div className="glass-panel glass-panel-hover rounded-2xl p-5.5 text-left transition-all duration-300">
+          {/* <div className="glass-panel glass-panel-hover rounded-2xl p-5.5 text-left transition-all duration-300">
             <h3 className="text-sm font-bold text-zinc-900 mb-2 flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-zinc-950" />
               Telemetry Dials
@@ -158,7 +164,7 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
             <p className="text-zinc-500 text-xs leading-relaxed font-light">
               Interactive telemetry dials show confidence metrics and pace changes synchronously as you speak.
             </p>
-          </div>
+          </div> */}
 
         </div>
 

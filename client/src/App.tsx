@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { HeroOdyssey } from './components/hero-odyssey'
 import { InterviewDashboard } from './components/interview-dashboard'
 import { AuthFlow } from './components/auth-flow'
+import { Features } from './components/features'
+import { TestimonialsSection } from './components/testimonials'
+import { AnimatedDock } from './components/animated-dock'
+import { Home, LayoutDashboard, PlayCircle, Settings, GitBranch } from 'lucide-react'
 
 type PageState = 'landing' | 'login' | 'dashboard'
 
@@ -52,10 +56,22 @@ function App() {
     setCurrentPage('landing')
   }
 
+  const dockItems = [
+    { title: 'Home', Icon: <Home className="w-5 h-5" />, onClick: handleBackToLanding },
+    { title: 'Dashboard', Icon: <LayoutDashboard className="w-5 h-5" />, onClick: () => { if(user) setCurrentPage('dashboard'); else setCurrentPage('login'); } },
+    { title: 'Start Mock Interview', Icon: <PlayCircle className="w-5 h-5" />, onClick: handleStartMockInterview },
+    { title: 'GitHub', Icon: <GitBranch className="w-5 h-5" />, link: 'https://github.com/tabishfarhan7', target: '_blank' },
+    { title: 'Settings', Icon: <Settings className="w-5 h-5" />, onClick: () => alert('Settings coming soon!') },
+  ];
+
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 flex flex-col font-sans">
       {currentPage === 'landing' && (
-        <HeroOdyssey onStart={handleStartMockInterview} />
+        <div className="flex flex-col w-full">
+          <HeroOdyssey onStart={handleStartMockInterview} />
+          <Features />
+          <TestimonialsSection />
+        </div>
       )}
       {currentPage === 'login' && (
         <AuthFlow 
@@ -69,6 +85,11 @@ function App() {
           onLogout={handleLogout}
         />
       )}
+
+      {/* Global Mac-style Bottom Dock */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+        <AnimatedDock items={dockItems} />
+      </div>
     </div>
   )
 }
