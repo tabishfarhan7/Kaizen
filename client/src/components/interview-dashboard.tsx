@@ -4,6 +4,7 @@ import { VideoStage } from './video-stage'
 import { TelemetryPanel } from './telemetry-panel'
 import { FeedbackModal } from './feedback-modal'
 import type { GradingPayload } from './feedback-modal'
+import type { CandidateProfile } from './candidate-settings'
 import { 
   Settings, 
   Sliders, 
@@ -15,11 +16,13 @@ import {
 
 interface InterviewDashboardProps {
   user: { name: string; email: string; isGuest?: boolean } | null
+  candidateProfile: CandidateProfile | null
   onLogout: () => void
 }
 
 export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({ 
   user, 
+  candidateProfile,
   onLogout 
 }) => {
   // App States
@@ -151,7 +154,7 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
 
     // 1. Emit start session to Socket
     if (!demoMode && socketRef.current) {
-      socketRef.current.emit('start_session')
+      socketRef.current.emit('start_session', { profile: candidateProfile })
     }
 
     // 2. Setup audio slicing MediaRecorder
@@ -225,6 +228,11 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
     } else {
       // Simulated server delay for grading
       setTimeout(() => {
+        // Dynamically use candidate profile if available
+        const topics = candidateProfile?.topics?.length ? candidateProfile.topics.join(', ') : 'system design';
+        const techStack = candidateProfile?.techStack?.length ? candidateProfile.techStack.join(' and ') : 'Redis';
+        const weaknesses = candidateProfile?.weaknesses?.length ? `Specifically regarding your stated focus area in ${candidateProfile.weaknesses[0]}, we noticed some hesitation.` : '';
+
         const mockGrading: GradingPayload = {
           overallScore: 88,
           overallGrade: 'A-',
@@ -236,15 +244,15 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
             youKnow: 3
           },
           qualitativeFeedback: {
-            summary: "The candidate answered the design and architectural question effectively, using Redis as an concrete caching layer. Sound logic was shown but excessive vocal filler words were present during transitions.",
+            summary: `The candidate answered the ${topics} questions effectively, utilizing ${techStack} properly in context. Sound logic was shown but excessive vocal filler words were present during transitions. ${weaknesses}`,
             strengths: [
-              "Clearly explained technical tradeoffs between SQL database overhead and caching layer additions.",
+              `Clearly explained technical tradeoffs using ${techStack}.`,
               "Vocal delivery pace was outstanding, keeping within the 120-140 WPM optimal window.",
-              "Detailed cache invalidation strategies showing system design depth."
+              ...(candidateProfile?.strengths?.length ? candidateProfile.strengths.map(s => `Effectively demonstrated your core strength: ${s}.`) : ["Detailed cache invalidation strategies showing system design depth."])
             ],
             improvements: [
               "Reduce standard transition filler words such as 'like', 'um', and 'you know'.",
-              "Include exact data scaling figures or throughput statistics when discussing Redis improvements."
+              `Include exact data scaling figures or throughput statistics when discussing ${techStack}.`
             ]
           }
         }

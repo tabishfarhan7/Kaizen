@@ -7,15 +7,15 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'default', size = 'default', ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:pointer-events-none select-none'
+    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:pointer-events-none select-none active:scale-[0.98]'
     
     let variantStyles = ''
     if (variant === 'default') {
-      variantStyles = 'bg-zinc-950 hover:bg-zinc-900 text-white border border-zinc-950 shadow-sm hover:scale-[1.01]'
+      variantStyles = 'bg-zinc-950 text-white border border-zinc-950 shadow-md hover:bg-zinc-900 hover:shadow-xl hover:shadow-zinc-950/20 hover:-translate-y-0.5'
     } else if (variant === 'secondary') {
-      variantStyles = 'bg-zinc-100 border border-zinc-200/80 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-200/60 shadow-sm'
+      variantStyles = 'bg-zinc-100 border border-zinc-200/80 text-zinc-700 hover:text-zinc-950 hover:bg-white hover:shadow-md hover:-translate-y-0.5'
     } else if (variant === 'outline') {
-      variantStyles = 'border border-zinc-200 hover:border-zinc-300 bg-white/50 backdrop-blur-sm text-zinc-500 hover:text-zinc-800 shadow-xs'
+      variantStyles = 'border border-zinc-200 bg-white/50 backdrop-blur-sm text-zinc-600 hover:text-zinc-950 hover:bg-white hover:border-zinc-300 hover:shadow-md hover:-translate-y-0.5'
     }
 
     let sizeStyles = ''

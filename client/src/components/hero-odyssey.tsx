@@ -118,16 +118,17 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
           <Button
             onClick={onStart}
             size="lg"
-            className="gap-2"
+            className="gap-2 group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
           >
-            Start Mock Interview <ArrowRight className="w-4 h-4" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+            Start Mock Interview <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Button>
 
           <Button
             onClick={onStart}
             size="lg"
             variant="secondary"
-            className="gap-2"
+            className="gap-2 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
           >
             Explore Demo Engine
           </Button>
