@@ -5,9 +5,11 @@ import { AuthFlow } from './components/auth-flow'
 import { Features } from './components/features'
 import { TestimonialsSection } from './components/testimonials'
 import { AnimatedDock } from './components/animated-dock'
-import { Home, LayoutDashboard, PlayCircle, Settings, GitBranch } from 'lucide-react'
+import { Home, LayoutDashboard, PlayCircle, Settings, GitBranch, Info, Bird as Twitter, Link as Linkedin, GitBranch as Github } from 'lucide-react'
+import { About } from './components/about'
+import { Footer } from './components/footer'
 
-type PageState = 'landing' | 'login' | 'dashboard'
+type PageState = 'landing' | 'login' | 'dashboard' | 'about'
 
 interface UserSession {
   name: string;
@@ -58,10 +60,23 @@ function App() {
 
   const dockItems = [
     { title: 'Home', Icon: <Home className="w-5 h-5" />, onClick: handleBackToLanding },
-    { title: 'Dashboard', Icon: <LayoutDashboard className="w-5 h-5" />, onClick: () => { if(user) setCurrentPage('dashboard'); else setCurrentPage('login'); } },
+    { title: 'About', Icon: <Info className="w-5 h-5" />, onClick: () => setCurrentPage('about') },
+    { title: 'Dashboard', Icon: <LayoutDashboard className="w-5 h-5" />, onClick: () => { if (user) setCurrentPage('dashboard'); else setCurrentPage('login'); } },
     { title: 'Start Mock Interview', Icon: <PlayCircle className="w-5 h-5" />, onClick: handleStartMockInterview },
     { title: 'GitHub', Icon: <GitBranch className="w-5 h-5" />, link: 'https://github.com/tabishfarhan7', target: '_blank' },
     { title: 'Settings', Icon: <Settings className="w-5 h-5" />, onClick: () => alert('Settings coming soon!') },
+  ];
+
+  const footerNavLinks = [
+    { label: 'Home', onClick: handleBackToLanding },
+    { label: 'About', onClick: () => setCurrentPage('about') },
+    { label: 'Start Interview', onClick: handleStartMockInterview },
+  ];
+
+  const footerSocialLinks = [
+    { label: 'GitHub', icon: <Github />, href: 'https://github.com/tabishfarhan7' },
+    { label: 'Twitter', icon: <Twitter />, href: 'https://twitter.com' },
+    { label: 'LinkedIn', icon: <Linkedin />, href: 'https://linkedin.com' },
   ];
 
   return (
@@ -71,16 +86,25 @@ function App() {
           <HeroOdyssey onStart={handleStartMockInterview} />
           <Features />
           <TestimonialsSection />
+          <Footer
+            creatorName="Suraj"
+            creatorUrl="https://github.com/tabishfarhan7"
+            navLinks={footerNavLinks}
+            socialLinks={footerSocialLinks}
+          />
         </div>
       )}
+      {currentPage === 'about' && (
+        <About onBackToLanding={handleBackToLanding} />
+      )}
       {currentPage === 'login' && (
-        <AuthFlow 
-          onAuthSuccess={handleAuthSuccess} 
-          onBackToLanding={handleBackToLanding} 
+        <AuthFlow
+          onAuthSuccess={handleAuthSuccess}
+          onBackToLanding={handleBackToLanding}
         />
       )}
       {currentPage === 'dashboard' && (
-        <InterviewDashboard 
+        <InterviewDashboard
           user={user}
           onLogout={handleLogout}
         />
