@@ -1,16 +1,23 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
+
+// --- ENUMS ---
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+// --- CORE MODELS ---
 
 model User {
   id              String   @id @default(cuid())
@@ -19,30 +26,96 @@ model User {
   name            String
   targetRole      String   @default("Full-Stack Developer")
   targetCompanies String[] @default([])
+  
+  // NEW: Tracking User Progress for the Dashboard
+  solvedMcqIds    String[] @default([]) // Array of MCQ IDs the user got correct
+  solvedCodingIds String[] @default([]) // Array of Coding Challenge IDs passed
+  
+  // NEW: Relationship to their past AI Interviews
+  interviews      MockInterview[]
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
 
+model Company {
+  id        String            @id @default(cuid())
+  name      String            @unique
+  logoUrl   String?       
+  
+  // The Relationships
+  mcqs             McqQuestion[] 
+  codingChallenges CodingChallenge[] // <-- ADDED: Now companies have coding challenges!
+  
+  createdAt DateTime          @default(now())
+}
+
 model McqQuestion {
-  id            String   @id @default(cuid())
-  question      String   @unique
-  options       String[]
-  correctAnswer String
-  companyTags   String[] @default([])
-  explanation   String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id            String     @id @default(cuid())
+  questionText  String     @unique
+  options       String[]   
+  correctAnswer String     
+  difficulty    Difficulty @default(MEDIUM)
+  explanation   String?    
+  
+  companies     Company[]  
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model CodingChallenge {
-  id          String   @id @default(cuid())
-  title       String   @unique
+  id          String     @id @default(cuid())
+  title       String     @unique
   description String
-  difficulty  String
-  tags        String[] @default([])
+  difficulty  Difficulty @default(MEDIUM) 
+  tags        String[]   @default([])
   starterCode String
   testCases   Json
-  timeLimitMs Int      @default(2000)
+  timeLimitMs Int        @default(2000)
+  
+  companies   Company[]  // <-- ADDED: Links back to the Company table
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// --- NEW FEATURE MODEL ---
+
+model MockInterview {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  role        String   // e.g., "Frontend", "System Design"
+  transcript  Json?    // Saves the conversation history between user and Gemini
+  score       Int?     // AI graded score out of 100
+  feedback    String?  // AI's final evaluation
+  
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+}
+
+// --- DSA NOTES VAULT MODELS ---
+
+model DsaTopic {
+  id        String    @id @default(cuid())
+  name      String    @unique // e.g., "Trees", "Dynamic Programming"
+  
+  // A topic can have many notes inside it
+  notes     DsaNote[] 
+  
+  createdAt DateTime  @default(now())
+}
+
+model DsaNote {
+  id        String    @id @default(cuid())
+  title     String
+  content   String    @db.Text // We use @db.Text so PostgreSQL allows massive markdown strings
+  
+  // The specific topic this note belongs to
+  topicId   String
+  topic     DsaTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

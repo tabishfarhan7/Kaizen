@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Define the props for the component
-interface HeroCollageProps extends React.HTMLAttributes<HTMLDivElement> {
+interface HeroCollageProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode;
   subtitle: string;
   stats: { value: string; label: string }[];

@@ -1,7 +1,15 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cpu, ArrowRight, Mail, Lock, User, AlertCircle, ArrowLeft, GitBranch as Github } from 'lucide-react'
+import { Cpu, User, AlertCircle, ArrowLeft, GitBranch as Github } from 'lucide-react'
 import { Button } from './ui/button'
+import { apiRequest } from '../api'
+
+interface AuthResponse {
+  user?: {
+    id: string
+    name: string
+  }
+}
 
 interface AuthFlowProps {
   onAuthSuccess: (user: { name: string; email: string; isGuest?: boolean }) => void
@@ -44,15 +52,25 @@ export const AuthFlow: React.FC<AuthFlowProps> = ({ onAuthSuccess, onBackToLandi
     setLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const endpoint = activeTab === 'signin' ? '/auth/login' : '/auth/register'
+      const payload =
+        activeTab === 'signin'
+          ? { email, password }
+          : { name, email, password }
+
+      const response = await apiRequest<AuthResponse>(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+      const authenticatedUser = response.user
 
       onAuthSuccess({
-        name: activeTab === 'signin' ? email.split('@')[0] : name,
+        name: authenticatedUser?.name ?? (activeTab === 'signin' ? email.split('@')[0] : name),
         email,
         isGuest: false,
       })
     } catch (err) {
-      setError('Authentication failed. Please check your credentials.')
+      setError(err instanceof Error ? err.message : 'Authentication failed. Please check your credentials.')
     } finally {
       setLoading(false)
     }

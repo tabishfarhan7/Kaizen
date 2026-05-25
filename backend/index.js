@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { createServer } from 'http'; 
 import { Server } from 'socket.io';  
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import notesRoutes from './routes/notes.js';
 
 import authRoutes from './routes/auth.js';
 import practiceRoutes from './routes/practice.js';
@@ -31,14 +32,14 @@ app.use(helmet());
 app.use(express.json()); 
 app.use(cookieParser()); 
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], 
   credentials: true 
 }));
 
 // --- Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/practice', practiceRoutes);
-
+app.use('/api/notes', notesRoutes); 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: "Kaizen Backend is Live!" });
 });

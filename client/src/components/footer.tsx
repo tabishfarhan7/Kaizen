@@ -1,10 +1,6 @@
 import React from "react";
 import {
   Cpu,
-  Bird as Twitter,
-  Link as Linkedin,
-  GitBranch as Github,
-  Mail,
 } from "lucide-react";
 
 interface FooterLink {

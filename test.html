@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kaizen Live Interview Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background-color: #1e1e1e; color: white; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; margin-right: 10px;}
+        #terminal { margin-top: 20px; padding: 15px; background: #000; font-family: monospace; color: #00ff00; height: 300px; border-radius: 5px; overflow-y: auto;}
+    </style>
+</head>
+<body>
+
+    <h2>🎤 Kaizen Live Interview Test</h2>
+    <button onclick="simulateSpeaking()">Send Audio Chunk</button>
+    <button onclick="simulateStopping()" style="background: #dc3545;">Stop Speaking</button>
+
+    <div id="terminal">Waiting for connection...<br></div>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        const terminal = document.getElementById('terminal');
+        const log = (msg) => terminal.innerHTML += `> ${msg}<br>`;
+        
+        let currentAiMessage = ""; // Holds the streaming words
+
+        const socket = io("http://localhost:5000");
+
+        socket.on("connect", () => {
+            log(`Walkie-Talkie Connected! ID: ${socket.id}`);
+        });
+
+        function simulateSpeaking() {
+            log("Sending: 'Hello, I am ready to start the system design interview.'");
+        }
+
+        function simulateStopping() {
+            log("Handing microphone to AI...");
+            // We send the simulated text to the backend
+            socket.emit("stop_speaking", { message: "Hello, I am ready to start the system design interview." });
+            
+            // Prepare the screen for the AI's response
+            currentAiMessage = ""; 
+            terminal.innerHTML += `<br><span style="color: yellow;">AI Manager: </span><span id="live-ai-text" style="color: yellow;"></span><br>`;
+        }
+
+        // Catch the streaming words as they arrive in real-time!
+        socket.on("ai_response_chunk", (data) => {
+            currentAiMessage += data.text;
+            document.getElementById('live-ai-text').innerText = currentAiMessage;
+        });
+
+        socket.on("ai_response_complete", () => {
+            log("<br><i>[AI finished speaking]</i><br>");
+        });
+    </script>
+</body>
+</html>

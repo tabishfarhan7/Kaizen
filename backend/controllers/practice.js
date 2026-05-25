@@ -20,7 +20,9 @@ export const getCompanyMcqs = async (req, res) => {
     const { company } = req.query;
     
     // If they asked for a specific company, filter by it. Otherwise, get all.
-    const filter = company ? { companyTags: { has: company } } : {};
+    const filter = company
+      ? { companies: { some: { name: String(company) } } }
+      : {};
     
     const mcqs = await prisma.mcqQuestion.findMany({
       where: filter,
