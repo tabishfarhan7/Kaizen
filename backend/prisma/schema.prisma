@@ -24,30 +24,37 @@ model User {
   email           String   @unique
   passwordHash    String
   name            String
+  
+  // -- ONBOARDING & DASHBOARD FIELDS --
   targetRole      String   @default("Full-Stack Developer")
   targetCompanies String[] @default([])
+  dreamCompany    String?  // Specifically for the new dynamic onboarding
+  techStack       String[] @default([]) // Captures their primary stack
   
-  // NEW: Tracking User Progress for the Dashboard
+  // -- TRACKING PROGRESS --
   solvedMcqIds    String[] @default([]) // Array of MCQ IDs the user got correct
   solvedCodingIds String[] @default([]) // Array of Coding Challenge IDs passed
   
-  // NEW: Relationship to their past AI Interviews
+  // -- RELATIONSHIPS --
   interviews      MockInterview[]
+  savedQuestions  SavedQuestion[]
+  savedMCQs       SavedMCQ[]
+  activityLogs    ActivityLog[]
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
 
 model Company {
-  id        String            @id @default(cuid())
-  name      String            @unique
-  logoUrl   String?       
+  id               String            @id @default(cuid())
+  name             String            @unique
+  logoUrl          String?        
   
   // The Relationships
   mcqs             McqQuestion[] 
-  codingChallenges CodingChallenge[] // <-- ADDED: Now companies have coding challenges!
+  codingChallenges CodingChallenge[]
   
-  createdAt DateTime          @default(now())
+  createdAt        DateTime          @default(now())
 }
 
 model McqQuestion {
@@ -59,40 +66,42 @@ model McqQuestion {
   explanation   String?    
   
   companies     Company[]  
+  savedBy       SavedMCQ[] // Links to the users who saved this MCQ
   
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 }
 
 model CodingChallenge {
-  id          String     @id @default(cuid())
-  title       String     @unique
+  id          String          @id @default(cuid())
+  title       String          @unique
   description String
-  difficulty  Difficulty @default(MEDIUM) 
-  tags        String[]   @default([])
+  difficulty  Difficulty      @default(MEDIUM) 
+  tags        String[]        @default([])
   starterCode String
   testCases   Json
-  timeLimitMs Int        @default(2000)
+  timeLimitMs Int             @default(2000)
   
-  companies   Company[]  // <-- ADDED: Links back to the Company table
+  companies   Company[]  
+  savedBy     SavedQuestion[] // Links to the users who saved this Challenge
   
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 // --- NEW FEATURE MODEL ---
 
 model MockInterview {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
   
-  role        String   // e.g., "Frontend", "System Design"
-  transcript  Json?    // Saves the conversation history between user and Gemini
-  score       Int?     // AI graded score out of 100
-  feedback    String?  // AI's final evaluation
+  role       String   // e.g., "Frontend", "System Design"
+  transcript Json?    // Saves the conversation history between user and Gemini
+  score      Int?     // AI graded score out of 100
+  feedback   String?  // AI's final evaluation
   
-  createdAt   DateTime @default(now())
+  createdAt  DateTime @default(now())
 }
 
 // --- DSA NOTES VAULT MODELS ---
@@ -108,14 +117,51 @@ model DsaTopic {
 }
 
 model DsaNote {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   title     String
-  content   String    @db.Text // We use @db.Text so PostgreSQL allows massive markdown strings
+  content   String   @db.Text // We use @db.Text so PostgreSQL allows massive markdown strings
   
   // The specific topic this note belongs to
   topicId   String
-  topic     DsaTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topic     DsaTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
   
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- THE SAVED VAULT ---
+
+model SavedQuestion {
+  id         String          @id @default(cuid())
+  userId     String
+  questionId String   
+  
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   CodingChallenge @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  savedAt    DateTime        @default(now())
+
+  @@unique([userId, questionId]) // Prevents saving the same challenge twice
+}
+
+model SavedMCQ {
+  id         String      @id @default(cuid())
+  userId     String
+  mcqId      String   
+  
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mcq        McqQuestion @relation(fields: [mcqId], references: [id], onDelete: Cascade)
+  savedAt    DateTime    @default(now())
+
+  @@unique([userId, mcqId]) // Prevents saving the same MCQ twice
+}
+
+// --- THE ACTIVITY HEATMAP ---
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // e.g., "LOGIN", "INTERVIEW_COMPLETED", "PRACTICE_COMPLETED"
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
