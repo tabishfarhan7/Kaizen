@@ -1,5 +1,10 @@
 import { WebSocketServer } from 'ws';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { PrismaClient } from '@prisma/client';
+// 📊 Import the automated grading engine service
+import { evaluateInterviewSession } from './evaluationService.js'; 
+
+const prisma = new PrismaClient();
 
 const systemInstruction = `
 You are a strict, professional Senior Technical Software Engineering Interviewer conducting a live mock interview.
@@ -39,8 +44,8 @@ const convertTextToSpeechBinary = async (text) => {
                     stability: 0.5,
                     similarity_boost: 0.5
                 }
-            })
-        });
+            }
+        )});
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -71,6 +76,7 @@ export const setupInterviewSocket = (server) => {
         });
         
         const chatSession = model.startChat({ history: [] });
+        let currentInterviewId = null;
 
         const sendJson = (payload) => {
             if (ws.readyState === 1) ws.send(JSON.stringify(payload));
@@ -87,13 +93,11 @@ export const setupInterviewSocket = (server) => {
             message: 'Interview WebSocket connected with STT & TTS Hybrid Audio capability.'
         });
 
-        // 🎛️ UPDATED: Added isBinary flag to intercept microphone streams
         ws.on('message', async (rawData, isBinary) => {
             try {
                 // 🎤 CASE A: Client sent raw audio buffer (Microphone Stream)
                 if (isBinary) {
                     console.log(`🎙️ Received user audio chunk: ${rawData.length} bytes`);
-                    // TODO: Pipe this rawData to Deepgram/Whisper for Speech-to-Text!
                     return; 
                 }
 
@@ -103,11 +107,47 @@ export const setupInterviewSocket = (server) => {
                 if (data.type === 'user_transcript') {
                     console.log('🗣️ User transcript received:', data.text);
                     
+                    // 1. Lazy-initialize the Interview Session in the database if not already created
+                    if (!currentInterviewId) {
+                        let targetUserId = data.userId;
+                        
+                        if (!targetUserId) {
+                            const defaultUser = await prisma.user.findFirst();
+                            targetUserId = defaultUser?.id;
+                        }
+
+                        if (!targetUserId) {
+                            console.error('❌ Cannot log session: No active users exist in the PostgreSQL instance.');
+                            sendJson({ type: 'error', message: 'No authenticated context or profile matching record found.' });
+                            return;
+                        }
+
+                        const session = await prisma.mockInterview.create({
+                            data: {
+                                userId: targetUserId,
+                                role: data.role || 'Full-Stack Developer',
+                                status: 'STARTED'
+                            }
+                        });
+                        currentInterviewId = session.id;
+                        console.log(`💾 PostgreSQL session generated under transaction identifier: ${currentInterviewId}`);
+                    }
+
+                    // 2. Commit User Message into historical relational records
+                    await prisma.interviewMessage.create({
+                        data: {
+                            interviewId: currentInterviewId,
+                            sender: 'USER',
+                            text: data.text
+                        }
+                    });
+                    
                     sendJson({ type: 'ai_response_start' });
 
                     const result = await chatSession.sendMessageStream(data.text);
                     
                     let sentenceBuffer = '';
+                    let totalResponseText = '';
 
                     for await (const chunk of result.stream) {
                         const chunkText = chunk.text();
@@ -115,6 +155,7 @@ export const setupInterviewSocket = (server) => {
 
                         sendJson({ type: 'ai_response_chunk', text: chunkText });
                         sentenceBuffer += chunkText;
+                        totalResponseText += chunkText;
 
                         if (/[.!?]/.test(chunkText)) {
                             const cleanSentence = sentenceBuffer.trim();
@@ -137,6 +178,15 @@ export const setupInterviewSocket = (server) => {
                         sendAudioBinary(audioBuffer);
                     }
 
+                    // 3. Commit AI Prompt text into database history context
+                    await prisma.interviewMessage.create({
+                        data: {
+                            interviewId: currentInterviewId,
+                            sender: 'AI',
+                            text: totalResponseText
+                        }
+                    });
+
                     sendJson({ type: 'ai_response_complete' });
                 }
             } catch (error) {
@@ -146,8 +196,25 @@ export const setupInterviewSocket = (server) => {
             }
         });
 
-        ws.on('close', () => {
+        ws.on('close', async () => {
             console.log('🔴 Client Disconnected from Interview Stream');
+            if (currentInterviewId) {
+                try {
+                    // 1. Immediately settle database connection status
+                    await prisma.mockInterview.update({
+                        where: { id: currentInterviewId },
+                        data: { status: 'COMPLETED' }
+                    });
+                    console.log(`💾 Session ${currentInterviewId} updated status definition to: COMPLETED`);
+
+                    // 2. Launch grading calculations out-of-band as a background worker thread
+                    // This evaluates the complete transcript string and updates scores/markdown feedback
+                    evaluateInterviewSession(currentInterviewId);
+
+                } catch (dbError) {
+                    console.error('❌ Failed updating session exit bounds:', dbError);
+                }
+            }
         });
     });
 };
