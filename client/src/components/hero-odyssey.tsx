@@ -4,10 +4,11 @@ import { MoveRight, Cpu, ArrowRight, ShieldCheck } from 'lucide-react'
 import { Button } from './ui/button'
 
 interface HeroOdysseyProps {
-  onStart: () => void
+  onStartInterview: () => void
+  onEnhanceSkills: () => void
 }
 
-export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
+export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStartInterview, onEnhanceSkills }) => {
   const [titleNumber, setTitleNumber] = useState(0)
   const titles = useMemo(
     () => [
@@ -116,21 +117,21 @@ export const HeroOdyssey: React.FC<HeroOdysseyProps> = ({ onStart }) => {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
           <Button
-            onClick={onStart}
+            onClick={onStartInterview}
             size="lg"
-            className="gap-2 group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden"
+            className="gap-2 group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden bg-zinc-950 text-white"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-            Start Mock Interview <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            Attempt Live Interview <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Button>
 
           <Button
-            onClick={onStart}
+            onClick={onEnhanceSkills}
             size="lg"
-            variant="secondary"
-            className="gap-2 hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+            variant="outline"
+            className="gap-2 hover:shadow-md hover:-translate-y-1 transition-all duration-300 border-zinc-200"
           >
-            Explore Demo Engine
+            Enhance Your Skills
           </Button>
         </div>
 
