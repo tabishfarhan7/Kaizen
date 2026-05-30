@@ -40,28 +40,13 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
   const [gradingData, setGradingData] = useState<GradingPayload | null>(null)
 
   // WebSocket Server configurations
-  const [serverUrl, setServerUrl] = useState('http://localhost:5000')
+  const [serverUrl, setServerUrl] = useState('http://localhost:5001')
   const [showSettings, setShowSettings] = useState(false)
   const [socketConnected, setSocketConnected] = useState(false)
-  const [demoMode, setDemoMode] = useState(false) // Connects to WebSocket by default
 
   // Refs for recording & WebSocket
   const socketRef = useRef<Socket | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const demoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const demoPaceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  // Demo variables
-  const demoTranscriptPhrases = [
-    "Sure! I'd love to... like... explain my experience. ",
-    "In my last project, we... um... noticed major performance bottlenecks in our database. ",
-    "So, we decided to... you know... implement Redis caching for the read-heavy queries. ",
-    "This was... ah... a major step forward, since it reduced database load by... like... sixty percent. ",
-    "We also... um... had to make sure the data wasn't stale, so we setup cache invalidation. ",
-    "Overall, it was... you know... a really challenging task, but the performance gains... so... were totally worth it. ",
-    "I'm confident... ah... this is the right approach for scalable systems."
-  ]
-  const demoPhraseIndex = useRef(0)
 
   // Request media streams on mount
   useEffect(() => {
@@ -83,17 +68,8 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
     }
   }, [])
 
-  // Establish WebSocket connection when serverUrl changes (if not in Demo Mode)
+  // Establish WebSocket connection when serverUrl changes
   useEffect(() => {
-    if (demoMode) {
-      setSocketConnected(false)
-      if (socketRef.current) {
-        socketRef.current.disconnect()
-        socketRef.current = null
-      }
-      return
-    }
-
     // Connect to server
     socketRef.current = io(serverUrl, {
       transports: ['websocket'],
@@ -131,7 +107,7 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
         socketRef.current.disconnect()
       }
     }
-  }, [serverUrl, demoMode])
+  }, [serverUrl])
 
   // Handle live toggle mute
   const handleToggleMute = () => {
@@ -153,7 +129,7 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
     setInterviewState('recording')
 
     // 1. Emit start session to Socket
-    if (!demoMode && socketRef.current) {
+    if (socketRef.current) {
       socketRef.current.emit('start_session', { profile: candidateProfile })
     }
 
@@ -169,9 +145,7 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
-          if (demoMode) {
-            console.log(`[Demo Audio Slicing] Produced 250ms chunk: ${event.data.size} bytes`)
-          } else if (socketRef.current?.connected) {
+          if (socketRef.current?.connected) {
             socketRef.current.emit('audio_chunk', event.data)
           }
         }
@@ -182,31 +156,6 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
     } catch (e) {
       console.error("Error setting up MediaRecorder", e)
     }
-
-    // 3. If in Demo Mode, start mock telemetry streams
-    if (demoMode) {
-      demoPhraseIndex.current = 0
-      
-      // Simulating transcription feed
-      demoIntervalRef.current = setInterval(() => {
-        if (demoPhraseIndex.current < demoTranscriptPhrases.length) {
-          const phrase = demoTranscriptPhrases[demoPhraseIndex.current]
-          setTranscript(prev => prev + phrase)
-          
-          // Randomize confidence scores around the phrase delivery
-          setConfidenceScore(Math.floor(Math.random() * 20) + 70) // 70 to 90
-          demoPhraseIndex.current++
-        } else {
-          // Restart loop
-          demoPhraseIndex.current = 0
-        }
-      }, 3500)
-
-      // Simulating speech pace changes
-      demoPaceIntervalRef.current = setInterval(() => {
-        setPace(Math.floor(Math.random() * 50) + 110) // 110 to 160 WPM
-      }, 2000)
-    }
   }
 
   // Triggered when ending mock interview
@@ -216,50 +165,11 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
       mediaRecorderRef.current.stop()
     }
 
-    // Clear simulation intervals
-    if (demoIntervalRef.current) clearInterval(demoIntervalRef.current)
-    if (demoPaceIntervalRef.current) clearInterval(demoPaceIntervalRef.current)
-
     setInterviewState('grading')
 
     // 2. Emit End to Socket/Server
-    if (!demoMode && socketRef.current) {
+    if (socketRef.current) {
       socketRef.current.emit('end_interview')
-    } else {
-      // Simulated server delay for grading
-      setTimeout(() => {
-        // Dynamically use candidate profile if available
-        const topics = candidateProfile?.topics?.length ? candidateProfile.topics.join(', ') : 'system design';
-        const techStack = candidateProfile?.techStack?.length ? candidateProfile.techStack.join(' and ') : 'Redis';
-        const weaknesses = candidateProfile?.weaknesses?.length ? `Specifically regarding your stated focus area in ${candidateProfile.weaknesses[0]}, we noticed some hesitation.` : '';
-
-        const mockGrading: GradingPayload = {
-          overallScore: 88,
-          overallGrade: 'A-',
-          fillerWords: {
-            like: 5,
-            um: 4,
-            ah: 3,
-            so: 2,
-            youKnow: 3
-          },
-          qualitativeFeedback: {
-            summary: `The candidate answered the ${topics} questions effectively, utilizing ${techStack} properly in context. Sound logic was shown but excessive vocal filler words were present during transitions. ${weaknesses}`,
-            strengths: [
-              `Clearly explained technical tradeoffs using ${techStack}.`,
-              "Vocal delivery pace was outstanding, keeping within the 120-140 WPM optimal window.",
-              ...(candidateProfile?.strengths?.length ? candidateProfile.strengths.map(s => `Effectively demonstrated your core strength: ${s}.`) : ["Detailed cache invalidation strategies showing system design depth."])
-            ],
-            improvements: [
-              "Reduce standard transition filler words such as 'like', 'um', and 'you know'.",
-              `Include exact data scaling figures or throughput statistics when discussing ${techStack}.`
-            ]
-          }
-        }
-        setGradingData(mockGrading)
-        setInterviewState('completed')
-        setFeedbackOpen(true)
-      }, 2000)
     }
   }
 
@@ -302,44 +212,22 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
         {/* Status badges & configuration settings button */}
         <div className="flex items-center gap-3">
           
-          {/* Demo Mode Toggle */}
-          <div 
-            onClick={() => setDemoMode(!demoMode)}
-            className="flex items-center gap-2 border border-zinc-200 rounded-xl px-3 py-1.5 bg-white text-xs text-zinc-600 cursor-pointer select-none hover:border-zinc-300 hover:bg-zinc-50 shadow-xs"
-            title="Toggle between real WebSocket server connection and local simulations"
-          >
-            <span className="font-mono text-[10px]">Demo Simulator:</span>
-            {demoMode ? (
-              <span className="text-emerald-600 flex items-center font-semibold gap-1">
-                Active <ToggleRight className="h-4.5 w-4.5 text-emerald-600 fill-emerald-600/10" />
-              </span>
-            ) : (
-              <span className="text-zinc-450 flex items-center font-semibold gap-1">
-                Off <ToggleLeft className="h-4.5 w-4.5 text-zinc-400" />
-              </span>
-            )}
-          </div>
-
           {/* Connected badge with pulsing status dot */}
           <div className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-mono border bg-white shadow-xs ${
-            demoMode || socketConnected
+            socketConnected
               ? 'border-emerald-200 text-emerald-700 bg-emerald-50/20'
               : 'border-zinc-200 text-zinc-500 bg-zinc-50/30'
           }`}>
             <span className="relative flex h-2 w-2">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                demoMode || socketConnected ? 'bg-emerald-400' : 'bg-red-400'
+                socketConnected ? 'bg-emerald-400' : 'bg-red-400'
               }`}></span>
               <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                demoMode || socketConnected ? 'bg-emerald-500' : 'bg-red-500'
+                socketConnected ? 'bg-emerald-500' : 'bg-red-500'
               }`}></span>
             </span>
             <span>
-              {demoMode 
-                ? 'Demo Active' 
-                : socketConnected 
-                ? 'Connected' 
-                : 'Offline'}
+              {socketConnected ? 'Connected' : 'Offline'}
             </span>
           </div>
 
@@ -388,18 +276,12 @@ export const InterviewDashboard: React.FC<InterviewDashboardProps> = ({
                 <input
                   type="text"
                   value={serverUrl}
-                  disabled={demoMode}
                   onChange={(e) => setServerUrl(e.target.value)}
-                  className="flex-1 bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-mono text-zinc-800 focus:outline-none focus:border-zinc-950 disabled:opacity-50"
-                  placeholder="http://localhost:5000"
+                  className="flex-1 bg-white border border-zinc-200 rounded-xl px-3 py-2 text-xs font-mono text-zinc-800 focus:outline-none focus:border-zinc-950"
+                  placeholder="http://localhost:5001"
                 />
               </div>
             </div>
-            {demoMode && (
-              <p className="text-[10px] text-zinc-500 font-sans leading-normal">
-                💡 Currently running in **Demo Simulator** mode. Deactivate simulator toggle in header to connect to a live socket.io backend at this URL.
-              </p>
-            )}
           </div>
         </div>
       )}

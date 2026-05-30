@@ -3,10 +3,14 @@ import { Button } from './ui/button';
 import { ArrowLeft, Save, Plus, X, Sliders, Target, Code2, ShieldCheck, AlertCircle, Zap } from 'lucide-react';
 
 export interface CandidateProfile {
+  targetCompany?: string;
   techStack: string[];
   topics: string[];
   strengths: string[];
   weaknesses: string[];
+  avatarUrl?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
 }
 
 interface CandidateSettingsProps {
