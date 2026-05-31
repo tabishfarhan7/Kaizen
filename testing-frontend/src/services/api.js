@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:5000',
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
@@ -21,6 +22,18 @@ export async function loginUser(credentials) {
 
 export async function registerUser(userData) {
   const response = await api.post('/api/auth/register', userData);
+  return response.data;
+}
+
+export async function getPracticeChallenges() {
+  const response = await api.get('/api/practice/challenges');
+  return response.data;
+}
+
+export async function getCompanyMcqs(company) {
+  const response = await api.get('/api/practice/mcqs', {
+    params: company ? { company } : undefined,
+  });
   return response.data;
 }
 

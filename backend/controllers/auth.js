@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-// Make sure this path to your db.js is correct, or just initialize Prisma directly here!
 import { prisma } from '../db.js'; 
 
 const registerSchema = z.object({

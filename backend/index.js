@@ -24,7 +24,7 @@ app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  // This dynamically accepts whatever local port your frontend happens to be runn
+  // Dynamically accepts whatever local port your frontend happens to be running on
   origin: function (origin, callback) {
     callback(null, true);
   },

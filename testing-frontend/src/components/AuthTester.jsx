@@ -1,14 +1,27 @@
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { loginUser, registerUser } from '../services/api.js';
 
 const initialForm = {
   name: '',
   email: '',
   password: '',
+  targetRole: 'Full-Stack Developer',
 };
 
 function getTokenFromResponse(data) {
   return data?.token || data?.jwt || data?.accessToken || data?.data?.token || '';
+}
+
+function getUserFromResponse(data, fallbackRole) {
+  const user = data?.user || data?.data?.user || {};
+
+  return {
+    id: user.id || user._id || '',
+    name: user.name || 'Test Candidate',
+    email: user.email || '',
+    targetRole: user.targetRole || fallbackRole || 'Full-Stack Developer',
+  };
 }
 
 export default function AuthTester({ onAuthenticated }) {
@@ -16,6 +29,8 @@ export default function AuthTester({ onAuthenticated }) {
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const updateField = (event) => {
     setForm((current) => ({
@@ -33,7 +48,7 @@ export default function AuthTester({ onAuthenticated }) {
       const payload =
         mode === 'login'
           ? { email: form.email, password: form.password }
-          : { name: form.name, email: form.email, password: form.password };
+          : { name: form.name, email: form.email, password: form.password, targetRole: form.targetRole };
 
       const data = mode === 'login' ? await loginUser(payload) : await registerUser(payload);
       const token = getTokenFromResponse(data);
@@ -44,9 +59,11 @@ export default function AuthTester({ onAuthenticated }) {
       }
 
       localStorage.setItem('token', token);
-      onAuthenticated(token);
+      localStorage.setItem('kaizenUser', JSON.stringify(getUserFromResponse(data, form.targetRole)));
+      onAuthenticated?.(token);
+      navigate(location.state?.from?.pathname || '/home', { replace: true });
     } catch (error) {
-      setStatus(error?.response?.data?.message || error?.message || 'Authentication request failed.');
+      setStatus(error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Authentication request failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -74,16 +91,34 @@ export default function AuthTester({ onAuthenticated }) {
 
       <form onSubmit={submitForm} className="space-y-4">
         {mode === 'register' ? (
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Name</span>
-            <input
-              name="name"
-              value={form.name}
-              onChange={updateField}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-              placeholder="Test Candidate"
-            />
-          </label>
+          <>
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Name</span>
+              <input
+                required
+                name="name"
+                value={form.name}
+                onChange={updateField}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                placeholder="Test Candidate"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Target Role</span>
+              <select
+                name="targetRole"
+                value={form.targetRole}
+                onChange={updateField}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              >
+                <option>Full-Stack Developer</option>
+                <option>Frontend Developer</option>
+                <option>Backend Developer</option>
+                <option>System Design</option>
+                <option>Data Structures and Algorithms</option>
+              </select>
+            </label>
+          </>
         ) : null}
 
         <label className="block">
@@ -117,7 +152,7 @@ export default function AuthTester({ onAuthenticated }) {
           disabled={isSubmitting}
           className="w-full rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          {isSubmitting ? 'Submitting...' : mode === 'login' ? 'Login and Open Workspace' : 'Register and Open Workspace'}
+          {isSubmitting ? 'Submitting...' : mode === 'login' ? 'Login and Open Home' : 'Register and Open Home'}
         </button>
       </form>
 
