@@ -1,5 +1,10 @@
 import { WebSocketServer } from 'ws';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { PrismaClient } from '@prisma/client';
+// 📊 Import the automated grading engine service
+import { evaluateInterviewSession } from './evaluationService.js'; 
+
+const prisma = new PrismaClient();
 
 const systemInstruction = `
 You are a strict, professional Senior Technical Software Engineering Interviewer conducting a live mock interview.
@@ -12,74 +17,204 @@ Keep responses conversational, spoken-word friendly, and under four sentences.
 DO NOT use markdown, bolding, code blocks, or bullet points. Speak in plain text.
 `;
 
-export const setupInterviewSocket = (server) => {
-    // 💡 Lazy Initialization ensures process.env.GEMINI_API_KEY is loaded!
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// 🔊 Direct API call to ElevenLabs TTS with Graceful Fallback
+const convertTextToSpeechBinary = async (text) => {
+    try {
+        const apiKey = process.env.ELEVENLABS_API_KEY;
+        const voiceId = process.env.ELEVENLABS_VOICE_ID || "pNInz6obpgmo512wGvCw"; // Fallback to Rachel
 
-    // Attach WebSocket server to the existing HTTP server
+        if (!apiKey) {
+            console.warn("⚠️ ElevenLabs API Key missing in .env! Skipping cloud audio.");
+            return Buffer.from([]);
+        }
+
+        console.log(`⏳ Calling ElevenLabs API for voice ID: ${voiceId}...`);
+
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
+            method: "POST",
+            headers: {
+                "Accept": "audio/mpeg",
+                "xi-api-key": apiKey,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                text: text,
+                model_id: "eleven_flash_v2_5", 
+                voice_settings: {
+                    stability: 0.5,
+                    similarity_boost: 0.5
+                }
+            }
+        )});
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`❌ ElevenLabs API Blocked (${response.status}):`, errorText);
+            return Buffer.from([]);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        console.log("✅ Audio buffer generated successfully!");
+        return Buffer.from(arrayBuffer);
+
+    } catch (error) {
+        console.error("❌ Audio Fetch Error:", error);
+        return Buffer.from([]);
+    }
+};
+
+export const setupInterviewSocket = (server) => {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const wss = new WebSocketServer({ server, path: '/ws/interview' });
 
     wss.on('connection', async (ws) => {
         console.log('🟢 New Client Connected to Interview Stream');
 
-        // Create a dedicated Gemini Chat Session using the exact active model string
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3.5-flash', 
             systemInstruction: systemInstruction 
         });
         
         const chatSession = model.startChat({ history: [] });
+        let currentInterviewId = null;
 
-        // Helper to safely send JSON strings to the client
         const sendJson = (payload) => {
-            if (ws.readyState === 1) { // 1 means WebSocket.OPEN
-                ws.send(JSON.stringify(payload));
+            if (ws.readyState === 1) ws.send(JSON.stringify(payload));
+        };
+
+        const sendAudioBinary = (buffer) => {
+            if (ws.readyState === 1 && buffer.length > 0) {
+                ws.send(buffer); 
             }
         };
 
-        // Welcome the client and let them know the system is ready
         sendJson({
             type: 'ready',
-            message: 'Interview WebSocket connected. Send transcribed text using type "user_transcript".'
+            message: 'Interview WebSocket connected with STT & TTS Hybrid Audio capability.'
         });
 
-        ws.on('message', async (message) => {
+        ws.on('message', async (rawData, isBinary) => {
             try {
-                // Convert buffer to string safely before parsing
-                const data = JSON.parse(message.toString());
+                // 🎤 CASE A: Client sent raw audio buffer (Microphone Stream)
+                if (isBinary) {
+                    console.log(`🎙️ Received user audio chunk: ${rawData.length} bytes`);
+                    return; 
+                }
+
+                // 📄 CASE B: Client sent JSON text packet
+                const data = JSON.parse(rawData.toString());
 
                 if (data.type === 'user_transcript') {
-                    console.log('🗣️ User says:', data.text);
+                    console.log('🗣️ User transcript received:', data.text);
                     
-                    // Signal the frontend that the AI has started processing
+                    // 1. Lazy-initialize the Interview Session in the database if not already created
+                    if (!currentInterviewId) {
+                        let targetUserId = data.userId;
+                        
+                        if (!targetUserId) {
+                            const defaultUser = await prisma.user.findFirst();
+                            targetUserId = defaultUser?.id;
+                        }
+
+                        if (!targetUserId) {
+                            console.error('❌ Cannot log session: No active users exist in the PostgreSQL instance.');
+                            sendJson({ type: 'error', message: 'No authenticated context or profile matching record found.' });
+                            return;
+                        }
+
+                        const session = await prisma.mockInterview.create({
+                            data: {
+                                userId: targetUserId,
+                                role: data.role || 'Full-Stack Developer',
+                                status: 'STARTED'
+                            }
+                        });
+                        currentInterviewId = session.id;
+                        console.log(`💾 PostgreSQL session generated under transaction identifier: ${currentInterviewId}`);
+                    }
+
+                    // 2. Commit User Message into historical relational records
+                    await prisma.interviewMessage.create({
+                        data: {
+                            interviewId: currentInterviewId,
+                            sender: 'USER',
+                            text: data.text
+                        }
+                    });
+                    
                     sendJson({ type: 'ai_response_start' });
 
-                    // Send text to Gemini and request a streaming response
                     const result = await chatSession.sendMessageStream(data.text);
+                    
+                    let sentenceBuffer = '';
+                    let totalResponseText = '';
 
-                    // Stream chunks back to the frontend instantly
                     for await (const chunk of result.stream) {
                         const chunkText = chunk.text();
-                        if (chunkText) {
-                            sendJson({ 
-                                type: 'ai_response_chunk', 
-                                text: chunkText 
-                            });
+                        if (!chunkText) continue;
+
+                        sendJson({ type: 'ai_response_chunk', text: chunkText });
+                        sentenceBuffer += chunkText;
+                        totalResponseText += chunkText;
+
+                        if (/[.!?]/.test(chunkText)) {
+                            const cleanSentence = sentenceBuffer.trim();
+                            if (cleanSentence.length > 0) {
+                                console.log(`🔊 Processing speech for: "${cleanSentence}"`);
+                                
+                                sendJson({ type: 'ai_sentence_complete', sentence: cleanSentence });
+                                
+                                const audioBuffer = await convertTextToSpeechBinary(cleanSentence);
+                                sendAudioBinary(audioBuffer);
+                            }
+                            sentenceBuffer = ''; 
                         }
                     }
 
-                    // Tell the frontend the AI is done talking
+                    if (sentenceBuffer.trim().length > 0) {
+                        const cleanSentence = sentenceBuffer.trim();
+                        sendJson({ type: 'ai_sentence_complete', sentence: cleanSentence });
+                        const audioBuffer = await convertTextToSpeechBinary(cleanSentence);
+                        sendAudioBinary(audioBuffer);
+                    }
+
+                    // 3. Commit AI Prompt text into database history context
+                    await prisma.interviewMessage.create({
+                        data: {
+                            interviewId: currentInterviewId,
+                            sender: 'AI',
+                            text: totalResponseText
+                        }
+                    });
+
                     sendJson({ type: 'ai_response_complete' });
                 }
             } catch (error) {
                 console.error('❌ WebSocket/Gemini Error:', error);
-                sendJson({ type: 'error', message: 'Failed to process audio transcript.' });
+                sendJson({ type: 'error', message: 'Failed to process incoming stream.' });
                 sendJson({ type: 'ai_response_complete', status: 'error' });
             }
         });
 
-        ws.on('close', () => {
+        ws.on('close', async () => {
             console.log('🔴 Client Disconnected from Interview Stream');
+            if (currentInterviewId) {
+                try {
+                    // 1. Immediately settle database connection status
+                    await prisma.mockInterview.update({
+                        where: { id: currentInterviewId },
+                        data: { status: 'COMPLETED' }
+                    });
+                    console.log(`💾 Session ${currentInterviewId} updated status definition to: COMPLETED`);
+
+                    // 2. Launch grading calculations out-of-band as a background worker thread
+                    // This evaluates the complete transcript string and updates scores/markdown feedback
+                    evaluateInterviewSession(currentInterviewId);
+
+                } catch (dbError) {
+                    console.error('❌ Failed updating session exit bounds:', dbError);
+                }
+            }
         });
     });
 };

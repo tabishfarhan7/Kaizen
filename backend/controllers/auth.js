@@ -1,9 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { prisma } from '../db.js';
+import { prisma } from '../db.js'; 
 
-// Zod Schema defines EXACTLY what the frontend is allowed to send
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
@@ -34,7 +33,9 @@ export const registerUser = async (req, res) => {
       }
     });
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // Fallback secret just in case your .env isn't loading properly during testing
+    const secret = process.env.JWT_SECRET || "fallback_secret_key";
+    const token = jwt.sign({ id: user.id }, secret, { expiresIn: '7d' });
 
     res.cookie('token', token, {
       httpOnly: true, 
@@ -43,11 +44,19 @@ export const registerUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-    res.status(201).json({ message: "Registration successful!", user: { id: user.id, name: user.name } });
+    // FIXED: Added 'token' to the JSON response so the React Test Harness can save it!
+    res.status(201).json({ 
+        message: "Registration successful!", 
+        user: { id: user.id, name: user.name },
+        token: token 
+    });
 
   } catch (error) {
-    console.error("🔥 THE REAL ERROR:", error); // <-- The exact line you asked for
-    res.status(400).json({ error: error.errors || "Server Error during registration." });
+    console.error("🔥 THE REAL ERROR:", error);
+    // FIXED: Now sends the actual error message to your browser Network tab so we can see it
+    res.status(400).json({ 
+        error: error.errors || error.message || "Server Error during registration." 
+    });
   }
 };
 
@@ -61,7 +70,8 @@ export const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return res.status(400).json({ error: "Invalid credentials." });
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const secret = process.env.JWT_SECRET || "fallback_secret_key";
+    const token = jwt.sign({ id: user.id }, secret, { expiresIn: '7d' });
 
     res.cookie('token', token, {
       httpOnly: true,
@@ -70,10 +80,15 @@ export const loginUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    res.status(200).json({ message: "Login successful!", user: { id: user.id, name: user.name } });
+    // FIXED: Added 'token' to the JSON response here as well
+    res.status(200).json({ 
+        message: "Login successful!", 
+        user: { id: user.id, name: user.name },
+        token: token
+    });
 
   } catch (error) {
-    console.error("🔥 THE REAL ERROR (LOGIN):", error); // Added here too for safety
-    res.status(500).json({ error: "Server error during login." });
+    console.error("🔥 THE REAL ERROR (LOGIN):", error);
+    res.status(500).json({ error: error.message || "Server error during login." });
   }
 };

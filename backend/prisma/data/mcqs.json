@@ -1,0 +1,268 @@
+[
+  {
+    "questionText": "What is the worst-case time complexity of QuickSort?",
+    "options": ["O(n log n)", "O(n^2)", "O(n)", "O(1)"],
+    "correctAnswer": "O(n^2)",
+    "difficulty": "MEDIUM",
+    "explanation": "QuickSort degrades to O(n^2) when the pivot chosen is consistently the smallest or largest element.",
+    "companyNames": ["Google", "Amazon"] 
+  },
+  {
+    "questionText": "Which data structure is primarily used for implementing a LIFO cache?",
+    "options": ["Queue", "Stack", "Tree", "Graph"],
+    "correctAnswer": "Stack",
+    "difficulty": "EASY",
+    "explanation": "LIFO stands for Last-In-First-Out, which is the defining characteristic of a Stack.",
+    "companyNames": ["Microsoft", "Amazon"] 
+  },
+  {
+    "question": "What is the time complexity of binary search on a sorted array?",
+    "options": ["O(n)", "O(log n)", "O(n log n)", "O(1)"],
+    "answer": "O(log n)"
+  },
+  {
+    "question": "Which data structure follows the Last In First Out (LIFO) principle?",
+    "options": ["Queue", "Stack", "Heap", "Tree"],
+    "answer": "Stack"
+  },
+  {
+    "question": "Which sorting algorithm has an average time complexity of O(n log n)?",
+    "options": ["Bubble Sort", "Insertion Sort", "Merge Sort", "Selection Sort"],
+    "answer": "Merge Sort"
+  },
+  {
+    "question": "What is the worst-case time complexity of Quick Sort?",
+    "options": ["O(n)", "O(log n)", "O(n log n)", "O(n²)"],
+    "answer": "O(n²)"
+  },
+  {
+    "question": "Which data structure is commonly used to implement recursion?",
+    "options": ["Queue", "Heap", "Stack", "Graph"],
+    "answer": "Stack"
+  },
+  {
+    "question": "Which traversal method visits the root node first?",
+    "options": ["Inorder", "Postorder", "Preorder", "Level Order"],
+    "answer": "Preorder"
+  },
+  {
+    "question": "What is the space complexity of an adjacency matrix for a graph with V vertices?",
+    "options": ["O(V)", "O(E)", "O(V²)", "O(log V)"],
+    "answer": "O(V²)"
+  },
+  {
+    "question": "Which SQL clause is used to filter grouped records?",
+    "options": ["WHERE", "ORDER BY", "HAVING", "GROUP BY"],
+    "answer": "HAVING"
+  },
+  {
+    "question": "What does ACID stand for in databases?",
+    "options": ["Atomicity, Consistency, Isolation, Durability", "Accuracy, Consistency, Integrity, Durability", "Atomicity, Concurrency, Isolation, Dependency", "Accuracy, Concurrency, Integrity, Dependency"],
+    "answer": "Atomicity, Consistency, Isolation, Durability"
+  },
+  {
+    "question": "Which normal form eliminates transitive dependency?",
+    "options": ["1NF", "2NF", "3NF", "BCNF"],
+    "answer": "3NF"
+  },
+  {
+    "question": "Which HTTP method is idempotent?",
+    "options": ["POST", "PATCH", "PUT", "CONNECT"],
+    "answer": "PUT"
+  },
+  {
+    "question": "What is the default port for HTTPS?",
+    "options": ["80", "21", "443", "25"],
+    "answer": "443"
+  },
+  {
+    "question": "Which layer of the OSI model is responsible for routing?",
+    "options": ["Transport", "Network", "Data Link", "Session"],
+    "answer": "Network"
+  },
+  {
+    "question": "What is a race condition?",
+    "options": ["A network delay issue", "A memory leak", "A concurrency problem where outcome depends on execution order", "A database lock"],
+    "answer": "A concurrency problem where outcome depends on execution order"
+  },
+  {
+    "question": "Which scheduling algorithm may cause starvation?",
+    "options": ["Round Robin", "FCFS", "Priority Scheduling", "FIFO"],
+    "answer": "Priority Scheduling"
+  },
+  {
+    "question": "What is a deadlock?",
+    "options": ["A CPU crash", "A situation where processes wait indefinitely for resources", "A network timeout", "A compiler error"],
+    "answer": "A situation where processes wait indefinitely for resources"
+  },
+  {
+    "question": "Which memory management technique uses pages?",
+    "options": ["Segmentation", "Paging", "Swapping", "Caching"],
+    "answer": "Paging"
+  },
+  {
+    "question": "What is the purpose of a mutex?",
+    "options": ["Speed up execution", "Synchronize access to shared resources", "Allocate memory", "Compress data"],
+    "answer": "Synchronize access to shared resources"
+  },
+  {
+    "question": "Which principle of OOP allows multiple implementations of the same interface?",
+    "options": ["Inheritance", "Encapsulation", "Polymorphism", "Abstraction"],
+    "answer": "Polymorphism"
+  },
+  {
+    "question": "Which OOP concept hides implementation details?",
+    "options": ["Inheritance", "Abstraction", "Polymorphism", "Aggregation"],
+    "answer": "Abstraction"
+  },
+  {
+    "question": "What is method overriding?",
+    "options": ["Defining multiple methods with same name and parameters", "Replacing a parent class method in a child class", "Creating static methods", "Hiding variables"],
+    "answer": "Replacing a parent class method in a child class"
+  },
+  {
+    "question": "Which design pattern ensures only one instance of a class exists?",
+    "options": ["Factory", "Observer", "Singleton", "Adapter"],
+    "answer": "Singleton"
+  },
+  {
+    "question": "What is the main advantage of using interfaces?",
+    "options": ["Memory optimization", "Multiple inheritance of behavior", "Faster execution", "Database connectivity"],
+    "answer": "Multiple inheritance of behavior"
+  },
+  {
+    "question": "Which data structure is used in Breadth First Search?",
+    "options": ["Stack", "Queue", "Heap", "Set"],
+    "answer": "Queue"
+  },
+  {
+    "question": "Which data structure is used in Depth First Search?",
+    "options": ["Queue", "Heap", "Stack", "Map"],
+    "answer": "Stack"
+  },
+  {
+    "question": "What is the time complexity of inserting into a hash table on average?",
+    "options": ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
+    "answer": "O(1)"
+  },
+  {
+    "question": "Which algorithm finds the shortest path in a graph with non-negative weights?",
+    "options": ["DFS", "BFS", "Dijkstra", "Kruskal"],
+    "answer": "Dijkstra"
+  },
+  {
+    "question": "Which algorithm is used to find the Minimum Spanning Tree?",
+    "options": ["Dijkstra", "Bellman-Ford", "Kruskal", "Floyd-Warshall"],
+    "answer": "Kruskal"
+  },
+  {
+    "question": "What is memoization in dynamic programming?",
+    "options": ["Sorting technique", "Caching computed results", "Searching method", "Compression method"],
+    "answer": "Caching computed results"
+  },
+  {
+    "question": "Which traversal of a BST gives sorted output?",
+    "options": ["Preorder", "Postorder", "Inorder", "Level Order"],
+    "answer": "Inorder"
+  },
+  {
+    "question": "What is the height of a balanced binary tree with n nodes?",
+    "options": ["O(n)", "O(log n)", "O(n²)", "O(1)"],
+    "answer": "O(log n)"
+  },
+  {
+    "question": "Which protocol is used to automatically assign IP addresses?",
+    "options": ["DNS", "DHCP", "FTP", "SMTP"],
+    "answer": "DHCP"
+  },
+  {
+    "question": "What is DNS primarily used for?",
+    "options": ["Email transfer", "IP routing", "Domain name resolution", "Encryption"],
+    "answer": "Domain name resolution"
+  },
+  {
+    "question": "Which command is used to create a new Git branch?",
+    "options": ["git checkout", "git branch", "git merge", "git pull"],
+    "answer": "git branch"
+  },
+  {
+    "question": "What does 'git merge' do?",
+    "options": ["Deletes a branch", "Combines changes from branches", "Creates a repository", "Pushes code"],
+    "answer": "Combines changes from branches"
+  },
+  {
+    "question": "Which cloud service model provides virtual machines?",
+    "options": ["SaaS", "PaaS", "IaaS", "FaaS"],
+    "answer": "IaaS"
+  },
+  {
+    "question": "Which Azure service provides object storage?",
+    "options": ["Azure Functions", "Azure Blob Storage", "Azure DevOps", "Azure VM"],
+    "answer": "Azure Blob Storage"
+  },
+  {
+    "question": "What is load balancing?",
+    "options": ["Encrypting data", "Distributing traffic across servers", "Compressing files", "Creating backups"],
+    "answer": "Distributing traffic across servers"
+  },
+  {
+    "question": "Which principle helps reduce coupling in software design?",
+    "options": ["Tight Coupling", "Dependency Injection", "Global Variables", "Hard Coding"],
+    "answer": "Dependency Injection"
+  },
+  {
+    "question": "What is the purpose of indexing in databases?",
+    "options": ["Reduce storage", "Increase security", "Improve query performance", "Normalize data"],
+    "answer": "Improve query performance"
+  },
+  {
+    "question": "Which join returns matching rows from both tables?",
+    "options": ["LEFT JOIN", "RIGHT JOIN", "INNER JOIN", "FULL JOIN"],
+    "answer": "INNER JOIN"
+  },
+  {
+    "question": "What is a primary key?",
+    "options": ["A duplicate value", "A unique identifier for records", "A foreign table", "An index type"],
+    "answer": "A unique identifier for records"
+  },
+  {
+    "question": "What is Big-O notation used for?",
+    "options": ["Memory allocation", "Performance analysis", "Database indexing", "Network routing"],
+    "answer": "Performance analysis"
+  },
+  {
+    "question": "Which algorithmic technique divides a problem into smaller subproblems?",
+    "options": ["Greedy", "Backtracking", "Divide and Conquer", "Branch and Bound"],
+    "answer": "Divide and Conquer"
+  },
+  {
+    "question": "What is a min-heap?",
+    "options": ["Tree with smallest element at root", "Sorted array", "Linked list", "Graph"],
+    "answer": "Tree with smallest element at root"
+  },
+  {
+    "question": "Which data structure provides O(1) average lookup time?",
+    "options": ["Array", "Linked List", "Hash Table", "Binary Tree"],
+    "answer": "Hash Table"
+  },
+  {
+    "question": "What is encapsulation?",
+    "options": ["Combining data and methods into a single unit", "Using multiple classes", "Copying objects", "Creating interfaces"],
+    "answer": "Combining data and methods into a single unit"
+  },
+  {
+    "question": "What is the purpose of REST APIs?",
+    "options": ["Database storage", "Communication between systems over HTTP", "Operating system scheduling", "Code compilation"],
+    "answer": "Communication between systems over HTTP"
+  },
+  {
+    "question": "Which HTTP status code indicates 'Not Found'?",
+    "options": ["200", "301", "404", "500"],
+    "answer": "404"
+  },
+  {
+    "question": "Which Microsoft cloud platform is widely used for enterprise applications?",
+    "options": ["AWS", "Azure", "Heroku", "DigitalOcean"],
+    "answer": "Azure"
+  }
+]
