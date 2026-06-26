@@ -1,0 +1,16 @@
+{
+  "name": "kaizen-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w client\"",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

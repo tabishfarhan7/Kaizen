@@ -29,7 +29,6 @@ const signupStep3Schema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupStep1Values = z.infer<typeof signupStep1Schema>;
-type SignupStep1Values = z.infer<typeof signupStep1Schema>;
 
 interface AuthFlowProps {
   onAuthSuccess: (user: any) => void;

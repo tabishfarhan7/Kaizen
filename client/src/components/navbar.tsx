@@ -40,7 +40,7 @@ export const Navbar: React.FC = () => {
             <NavLink
               key={link.name}
               to={link.path}
-              className={({ isActive }) => 
+              className={({ isActive }) =>
                 `text-sm font-medium transition-colors hover:text-zinc-950 ${isActive ? 'text-zinc-950 font-bold' : 'text-zinc-500'}`
               }
             >
@@ -57,7 +57,7 @@ export const Navbar: React.FC = () => {
             </Button>
           ) : (
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none"
               >
@@ -68,7 +68,7 @@ export const Navbar: React.FC = () => {
 
               <AnimatePresence>
                 {dropdownOpen && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -80,19 +80,19 @@ export const Navbar: React.FC = () => {
                       <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
                     </div>
                     <div className="p-2 space-y-1">
-                      <button 
+                      <button
                         onClick={() => { setDropdownOpen(false); navigate('/app/dashboard'); }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
                       >
                         <User className="w-4 h-4" /> Dashboard
                       </button>
-                      <button 
+                      <button
                         onClick={() => { setDropdownOpen(false); navigate('/app/settings'); }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg transition-colors"
                       >
                         <Settings className="w-4 h-4" /> Settings
                       </button>
-                      <button 
+                      <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
